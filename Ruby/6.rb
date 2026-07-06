@@ -22,7 +22,7 @@ def hamming_distance(a, b)
   a.bytes.zip(b.bytes).map { |a, b| (a ^ b).to_s(2) }.join.count('1')
 end
 
-enc      = Base64.decode64(URI.open('http://cryptopals.com/static/challenge-data/6.txt') { |f| f.read }.strip!)
+enc      = Base64.decode64(URI.open('http://cryptopals.com/static/challenge-data/6.txt') { |f| f.read }.strip)
 hamdists = Hash.new
 
 # Step 3 and 4.
@@ -52,7 +52,7 @@ key = String.new
 
 # Step 7 and 8.
 transposed_blocks.each_with_index do |block, i|
-  key << MatasanoLib::XOR.brute(block, 'ETAOIN SHRDLU')[:key]
+  key << MatasanoLib::XOR.brute(block)[:key]
 end
 
 puts "Key: '" << key << "'\n\n"

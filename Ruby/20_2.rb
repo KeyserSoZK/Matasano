@@ -8,7 +8,7 @@
 # I am aware that DP algorithms such as mine can be optimized from O(n^2) to O(n log n) by caching needed values continually rather than calculating it each invokation.
 # Perhaps Ruby did this optimization - it would seem so.
 
-# FIXME: Just noticed there is a small bug per the output (possibly an off-by-one issue).
+# NOTE: the tail of the longest lines is garbage — those columns have only 1-3 sample bytes, too few for frequency analysis (inherent, not a bug). Canonical #20 truncates to the shortest ciphertext.
 
 require_relative 'matasano_lib/monkey_patch'
 require_relative 'matasano_lib/aes_128'
@@ -72,7 +72,7 @@ end
 # Each byte in the ciphertext column is correspondently XOR'd with the most probable evil plaintext byte to produce the relevant keystream byte as K = C ^ P'. We know this because P = C ^ K, naturally.
 # The most probable K for (P', C) will be returned.
 def decrypt_next_byte(column)
-  solution = MatasanoLib::XOR.brute(column, 'ETAOIN SHRDLU,.')
+  solution = MatasanoLib::XOR.brute(column)
   solution[:key]
 end
 

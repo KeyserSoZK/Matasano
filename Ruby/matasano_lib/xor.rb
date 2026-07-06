@@ -4,9 +4,10 @@ module MatasanoLib
   module XOR
     class << self
       # Operates XOR on two hex strings, and returns the result in hex format.
+      # Left-pad to the input width so a result with a leading zero nibble isn't truncated.
       def hex(a, b)
         raise "Unequal buffers passed." if a.size != b.size
-        (a.hex ^ b.hex).to_s(16)
+        (a.hex ^ b.hex).to_s(16).rjust(a.size, '0')
       end
 
       # Return the number of set bits (the number of differing bits, as per XOR).
@@ -24,36 +25,6 @@ module MatasanoLib
         end
 
         ciphertext.to_hex
-      end
-
-      # Brute forces enc against charset: a 'scoring' function.
-      # Returns a hash with the highest score.
-      def brute_old(enc, charset)
-        solution_data = {score: 0}
-
-        # Splits up given charset (common characters) into a regular expression for comparison against resulting plaintexts.
-        # 'ABC' => /A|B|C/i
-        regexpr = Regexp.union(charset.chars)
-        regexpr = Regexp.new(regexpr.source, Regexp::IGNORECASE)
-
-        (0..255).each do |i|
-          key_char  = i.chr
-          xor_key   = (key_char * enc.length).to_hex  # Repeat single-key to match size of ciphertext for XOR'ing.
-          dec_hex   = hex(enc.to_hex, xor_key)
-          plaintext = dec_hex.unhex
-          score     = plaintext.scan(regexpr).size / plaintext.length.to_f  # Returns the number of matches and normalises the result.
-
-          # Update solution data to match more promising solution (higher score).
-          if score > solution_data[:score]
-            solution_data[:score]      = score
-            solution_data[:key]        = key_char
-            solution_data[:ciphertext] = enc.to_hex
-            solution_data[:plaintext]  = plaintext
-          end
-        end
-
-        #raise 'No solution.' if solution_data[:score] == 0
-        solution_data
       end
 
       ENGLISH_FREQ = {
@@ -77,18 +48,19 @@ module MatasanoLib
         end
       end
 
+      # Brute forces single-byte XOR against `enc` (a raw byte string), scoring each candidate
+      # plaintext with `score_english`. Returns the highest-scoring { score:, key:, plaintext: }.
+      # `key` is the single key byte as a 1-character string.
       def brute(enc)
         best = { score: -Float::INFINITY, key: nil, plaintext: nil }
 
         (0..255).each do |k|
-          key_char  = k.chr
-          xor_key   = key_char * enc.bytesize
-          plaintext = enc.bytes.zip(xor_key.bytes).map { |a, b| (a ^ b).chr }.join
+          plaintext = enc.bytes.map { |b| (b ^ k).chr }.join
           score     = score_english(plaintext)
 
           if score > best[:score]
-            best[:score] = score
-            best[:key] = key_char
+            best[:score]     = score
+            best[:key]       = k.chr
             best[:plaintext] = plaintext
           end
         end

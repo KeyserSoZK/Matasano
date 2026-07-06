@@ -10,7 +10,7 @@ require_relative 'matasano_lib/monkey_patch'
 require_relative 'matasano_lib/aes_128'
 require_relative 'matasano_lib/xor'
 
-# FIXME: Just noticed there is a small bug per the output (possibly an off-by-one issue).
+# NOTE: the tail of the longest lines is garbage — those columns have only 1-3 sample bytes, too few for frequency analysis (inherent, not a bug). Canonical #20 truncates to the shortest ciphertext.
 
 # Take your CTR encrypt/decrypt function and fix its nonce value to 0. Generate a random AES key.
 $AES_KEY = '4d79fe4bcacbd950db9b20bfc656259c'.unhex
@@ -68,21 +68,17 @@ def decrypt_next_byte(ciphertexts, k)
     column << c[k].to_s
   end
 
-  solution = MatasanoLib::XOR.brute(column, "ETAOIN SHRDLU.,?;:")
+  solution = MatasanoLib::XOR.brute(column)
   solution[:key]
 end
 
 def decrypt_keystream(ciphertexts)
   keystream = ''
+  max_len   = ciphertexts.map(&:size).max  # Keystream can only be recovered up to the longest ciphertext.
 
-  ciphertexts.each_with_index do |c, i|
-    candidate_keys = []
-
-    c.size.times do
-      candidate_keys << decrypt_next_byte(ciphertexts, i)
-    end
-
-    keystream << candidate_keys[0].to_s
+  # Recover one keystream byte per column position (not per ciphertext).
+  max_len.times do |k|
+    keystream << decrypt_next_byte(ciphertexts, k).to_s
   end
 
   keystream
