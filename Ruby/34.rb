@@ -36,8 +36,7 @@ class Diffie_Hellman
 
   # Implementation of the memory-efficient, fast modular exponentiation algorithm known as "exponentiation by squaring" (right-to-left binary method).
   # Computes `(base ** exp) % mod` (particularly useful for bignums).
-  #
-  # TODO: consider moving to a separate module for re-use.
+  # NOTE: Ruby's pow() already does this as of version 2.5+, so this isn't needed. But I'll keep it for now.
   def mod_exp(base, exp, mod)
     return 0 if mod == 1
 

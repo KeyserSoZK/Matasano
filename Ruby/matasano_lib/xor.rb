@@ -17,18 +17,18 @@ module MatasanoLib
 
       # Can be used for either encryption or decryption (as per the way XOR operates).
       def crypt(plaintext, key)
-        ciphertext = String.new
+        ciphertext = ''
 
-        plaintext.chars.each_with_index do |c, i|
-          ciphertext << "%02x" % (c.bytes[0] ^ key[i % key.length].bytes[0])
+        plaintext.bytes.each_with_index do |byte, i|
+          ciphertext << (byte ^ key.getbyte(i % key.length)).chr
         end
 
-        ciphertext
+        ciphertext.to_hex
       end
 
       # Brute forces enc against charset: a 'scoring' function.
       # Returns a hash with the highest score.
-      def brute(enc, charset)
+      def brute_old(enc, charset)
         solution_data = {score: 0}
 
         # Splits up given charset (common characters) into a regular expression for comparison against resulting plaintexts.
@@ -54,6 +54,46 @@ module MatasanoLib
 
         #raise 'No solution.' if solution_data[:score] == 0
         solution_data
+      end
+
+      ENGLISH_FREQ = {
+        'a'=>8.167, 'b'=>1.492, 'c'=>2.782, 'd'=>4.253, 'e'=>12.702,
+        'f'=>2.228, 'g'=>2.015, 'h'=>6.094, 'i'=>6.966, 'j'=>0.153,
+        'k'=>0.772, 'l'=>4.025, 'm'=>2.406, 'n'=>6.749, 'o'=>7.507,
+        'p'=>1.929, 'q'=>0.095, 'r'=>5.987, 's'=>6.327, 't'=>9.056,
+        'u'=>2.758, 'v'=>0.978, 'w'=>2.360, 'x'=>0.150, 'y'=>1.974,
+        'z'=>0.074, ' '=>13.0, '.'=>1.0, ','=>1.0, "\n"=>1.0
+      }
+
+      def score_english(text)
+        text.downcase.chars.sum do |c|
+          if ENGLISH_FREQ.key?(c)
+            ENGLISH_FREQ[c]
+          elsif c.ord.between?(32, 126)
+            0.0 # neutral score for valid but uncommon printable chars
+          else
+            -5.0 # strong penalty for non-printable/non-ASCII
+          end
+        end
+      end
+
+      def brute(enc)
+        best = { score: -Float::INFINITY, key: nil, plaintext: nil }
+
+        (0..255).each do |k|
+          key_char  = k.chr
+          xor_key   = key_char * enc.bytesize
+          plaintext = enc.bytes.zip(xor_key.bytes).map { |a, b| (a ^ b).chr }.join
+          score     = score_english(plaintext)
+
+          if score > best[:score]
+            best[:score] = score
+            best[:key] = key_char
+            best[:plaintext] = plaintext
+          end
+        end
+
+        best
       end
     end
   end

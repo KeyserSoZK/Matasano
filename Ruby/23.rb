@@ -1,6 +1,5 @@
 # Challenge 23: clone an MT19937 RNG from its output.
 
-
 # The internal state of MT19937 consists of 624 32-bit integers.
 # For each batch of 624 outputs, MT permutes that internal state. By permuting state regularly, MT19937 achieves a period of 2**19937, which is big.
 # 
@@ -14,7 +13,6 @@
 # Once you have "untemper" working, create a new MT19937 generator, tap it for 624 outputs, untemper each of them to recreate the state of the generator, and splice that state into a new instance of the MT19937 generator.
 # 
 # The new "spliced" generator should predict the values of the original.
-
 
 require_relative 'matasano_lib/mt19937'
 

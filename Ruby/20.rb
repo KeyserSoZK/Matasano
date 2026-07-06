@@ -61,19 +61,31 @@ PLAINTEXTS = [
 # Transpose the ciphertext C into its own respective column (i.e. select every i'th character from every block of C).
 # Each byte in the column is correspondently XOR'd with the most probable evil plaintext byte to produce the relevant keystream byte K = C ^ P'. We know this because P = C ^ K, naturally.
 # The most probable K for (P', C) will be returned.
-def decrypt_next_byte(ciphertexts, i)
+def decrypt_next_byte_old(ciphertexts, i)
   column = ciphertexts.map { |c| c[i] || '' }.join
+  return nil if column.empty?
 
-  solution = MatasanoLib::XOR.brute(column, 'ETAOIN SHRDLU,.')
+  #solution = MatasanoLib::XOR.brute(column, 'ETAOIN SHRDLU,.')
+  solution = MatasanoLib::XOR.brute(column)
+  solution[:key]
+end
+
+def decrypt_next_byte(ciphertexts, i)
+  column = ciphertexts.map { |c| c.getbyte(i) }.compact
+  return nil if column.empty?
+
+  bytes = column.pack('C*')  # Convert array of bytes to binary string
+  solution = MatasanoLib::XOR.brute(bytes)
   solution[:key]
 end
 
 def decrypt_keystream(ciphertexts)
   keystream = ''
+  max_len   = ciphertexts.map(&:size).max
 
-  ciphertexts.map.with_index do |c, i|
-    candidate_key = decrypt_next_byte(ciphertexts, i)     # Do '(c.max_by(&:size).size).times' if necessary (code seems to be highly robust and derives the same, correct key for every instance).
-    keystream << candidate_key unless candidate_key.nil?  # In which case, you will want to append the most common key in from the array of candidate keys to keystream instead.
+  max_len.times do |i|
+    candidate_key = decrypt_next_byte(ciphertexts, i)
+    keystream << candidate_key unless candidate_key.nil?
   end
 
   keystream
