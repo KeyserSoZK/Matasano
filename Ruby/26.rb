@@ -10,17 +10,19 @@
 #   The mathematics are all defined in the block cipher mode.
 #   It's all a matter of understanding how XOR operations in CTR take place for encryption/decryption and using it to your advantage.
 
+require 'securerandom'
+
 require_relative 'matasano_lib/monkey_patch'
 require_relative 'matasano_lib/aes_128'
 require_relative 'matasano_lib/pkcs7'
 
 BLOCKSIZE = MatasanoLib::AES_128::BLOCKSIZE  # 16 bytes.
-NONCE     = rand(0..0xffffff)  # [0, 2 ** 32)
+NONCE     = SecureRandom.random_number(2**64)  # 64-bit CTR nonce.
 AES_KEY   = 'd41d19c407130e53228994fa192dcaf7'.unhex
 
 def encrypt_request(input)
     input = "comment1=cooking%20MCs;userdata=" << input.gsub(/([;=])/, '\'\1\'') << ";comment2=%20like%20a%20pound%20of%20bacon"
-    MatasanoLib::AES_128.encrypt(input, AES_KEY, mode: :CTR)
+    MatasanoLib::AES_128.encrypt(input, AES_KEY, mode: :CTR, nonce: NONCE)
 end
 
 def is_admin?(input)

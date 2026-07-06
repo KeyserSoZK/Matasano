@@ -57,7 +57,7 @@ module MatasanoLib
       for i in 0..(@@n - 1)
         x         = (@state[i] & UPPER_MASK) + (@state[(i + 1) % @@n] & LOWER_MASK)
         xA        = x >> 1
-        xA       ^= @@a if x & 1
+        xA       ^= @@a if x.odd?  # Only mix in the magic constant when the low bit is set (x & 1 is 0/1, both truthy in Ruby).
         @state[i] = @state[(i + @@m) % @@n] ^ xA
       end
 

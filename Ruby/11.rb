@@ -38,7 +38,7 @@ def detect_aes_mode(ciphertext)             # Expecting hex formatted ciphertext
 end
 
 input = "I need the same 16-byte blocks. I need the same 16-byte blocks. I need the same 16-byte blocks."
-enc   = aes_rand_encrypt(input).unpack('H*').to_s
+enc   = aes_rand_encrypt(input).unpack('H*')[0]
 mode  = detect_aes_mode(enc)
 
 puts "Ciphertext: #{enc}\n\nDetected mode: #{mode}"

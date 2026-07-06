@@ -165,7 +165,7 @@ end
 # Now, take the MD4 secret-prefix MAC of the message you want to forge -- this is just a MD4 hash -- and break it into 32 bit MD4 registers (MD4 calls them "a", "b", "c", etc.).
 def extract_final_state(digest)
   # Check if a hex digest is passed instead and decode it (i.e., MD4_MAC.hex_digest -> MD4_MAC.digest).
-  digest = digest.unhex if digest.is_a?(String) && digest.size == 40
+  digest = digest.unhex if digest.is_a?(String) && digest.size == 32
 
   # Reverse the final step in MD4 to retrieve the internal state such that you can clone the state, ultimately allowing us to suffix a payload.
   # I.e., this gives us our four 32-bit MD4 registers, which will be fixated for forging.
