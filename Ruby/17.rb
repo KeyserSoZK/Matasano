@@ -97,7 +97,7 @@ end
 
 # The second function should consume the ciphertext produced by the first function, decrypt it, check its padding, and return true or false depending on whether the padding is valid.
 def padding_oracle(ciphertext, iv)
-  opts      = {mode: :CBC, iv: iv}
+  opts      = {mode: :CBC, iv: iv, padded: false}  # Keep the padding intact so the oracle can validate it.
   plaintext = MatasanoLib::AES_128.decrypt(ciphertext, AES_KEY, opts)
 
   MatasanoLib::PKCS7.valid(plaintext)

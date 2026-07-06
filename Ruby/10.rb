@@ -14,14 +14,14 @@ end
 
 def aes_cbc_decrypt(enc, key, iv = "\0" * 16)  # 16 byte blocks (128-bit cipher).
   enc_blocks = enc.scan(/.{1,16}/m)
-  dec_block  = MatasanoLib::AES_128_ECB.decrypt(enc_blocks[0], key)
+  dec_block  = MatasanoLib::AES_128_ECB.decrypt(enc_blocks[0], key, padded: false)
   plaintext  = [MatasanoLib::XOR.crypt(dec_block, iv)].pack('H*')
   prev_block = enc_blocks[0]
 
   # Neglect the first block and iterate through the rest.
   enc_blocks.shift
   enc_blocks.each do |curr_block|
-    dec_block = MatasanoLib::AES_128_ECB.decrypt(curr_block, key)
+    dec_block = MatasanoLib::AES_128_ECB.decrypt(curr_block, key, padded: false)
     plaintext << [MatasanoLib::XOR.crypt(dec_block, prev_block)].pack('H*')
 
     prev_block = curr_block

@@ -28,7 +28,8 @@ module MatasanoLib
       end
 
       def decrypt(enc, key, opts = {})
-        opts[:iv]  = "\0" * AES_128::BLOCKSIZE unless opts[:iv]
+        opts[:iv]     = "\0" * AES_128::BLOCKSIZE unless opts[:iv]
+        opts[:padded] = true if opts[:padded].nil?
         enc_blocks = enc.chunk(AES_128::BLOCKSIZE)
         dec_block  = AES_128.decrypt(enc_blocks[0], key, mode: :ECB, padded: false)
         plaintext  = XOR.crypt(dec_block, opts[:iv]).unhex
@@ -37,13 +38,13 @@ module MatasanoLib
         # Neglect the first block and iterate through the rest.
         enc_blocks.shift
         enc_blocks.each do |curr_block|
-          dec_block = AES_128.decrypt(curr_block, key, mode: :ECB)
+          dec_block = AES_128.decrypt(curr_block, key, mode: :ECB, padded: false)
           plaintext << XOR.crypt(dec_block, prev_block).unhex
 
           prev_block = curr_block
         end
 
-        PKCS7.strip(plaintext)
+        opts[:padded] ? PKCS7.strip(plaintext) : plaintext
       end
     end
 
