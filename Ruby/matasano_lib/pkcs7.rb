@@ -1,24 +1,25 @@
 module MatasanoLib
   module PKCS7
-    class << self
-      @@blocksize = 16
+    BLOCKSIZE = 16
 
-      def pad(str, blocksize = @@blocksize)
+    class << self
+      def pad(str, blocksize = BLOCKSIZE)
         padding = blocksize - (str.length % blocksize)
         str + padding.chr * padding
       end
 
       def valid(str)
+        return false if str.nil? || str.empty?
+
         pad_char = str[-1]
         padding  = pad_char * pad_char.ord
 
         # Confirm the last byte of `str` is within the range of valid PKCS #7 values and `str` ends with a sequence of that value.
         # (Leans on short-circuit evaluation of left operand.)
-        pad_char.ord.between?(1, @@blocksize) && str.end_with?(padding)
+        pad_char.ord.between?(1, BLOCKSIZE) && str.end_with?(padding)
       end
 
-      def strip(str, blocksize = @@blocksize)
-        # My bad, man, didn't mean to fuck with your string. Here you go. Sorry for any inconvenience.
+      def strip(str, blocksize = BLOCKSIZE)
         return str unless valid(str)
 
         pad_char  = str[-1]
