@@ -5,7 +5,7 @@
 #
 # Another bottom-up, dynamic programming approach to solving this puzzle. It simplified the process greatly.
 
-# FIXME: Just noticed there is a small bug per the output (possibly an off-by-one issue).
+# NOTE: the tail of the longest lines is garbage — those columns have only 1-3 sample bytes, too few for frequency analysis (inherent, not a bug). Canonical #20 truncates to the shortest ciphertext.
 
 require_relative 'matasano_lib/monkey_patch'
 require_relative 'matasano_lib/aes_128'
@@ -61,15 +61,6 @@ PLAINTEXTS = [
 # Transpose the ciphertext C into its own respective column (i.e. select every i'th character from every block of C).
 # Each byte in the column is correspondently XOR'd with the most probable evil plaintext byte to produce the relevant keystream byte K = C ^ P'. We know this because P = C ^ K, naturally.
 # The most probable K for (P', C) will be returned.
-def decrypt_next_byte_old(ciphertexts, i)
-  column = ciphertexts.map { |c| c[i] || '' }.join
-  return nil if column.empty?
-
-  #solution = MatasanoLib::XOR.brute(column, 'ETAOIN SHRDLU,.')
-  solution = MatasanoLib::XOR.brute(column)
-  solution[:key]
-end
-
 def decrypt_next_byte(ciphertexts, i)
   column = ciphertexts.map { |c| c.getbyte(i) }.compact
   return nil if column.empty?

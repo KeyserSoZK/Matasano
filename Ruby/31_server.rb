@@ -11,13 +11,13 @@ class SHA1_HMAC
     # Per RFC 2104 -- https://en.wikipedia.org/wiki/HMAC
     #   HMAC(K, m) = H((K' ^ opad) || H((K' ^ ipad) || m)) such that 
     #   K' = H(K) if K > blocksize; else, K
-    key = SHA1.new(key).digest if key.size > BLOCKSIZE
+    key = MatasanoLib::Digest::SHA1.new(key).digest if key.size > BLOCKSIZE
     key = key.ljust(BLOCKSIZE, "\0")  # We must pad to 64 bytes either way (whether key is hashed to 20 bytes or plaintext/unchanged).
 
     o_key_pad = key.bytes.map { |k| (k ^ 0x5c) }.pack('C*')
     i_key_pad = key.bytes.map { |k| (k ^ 0x36) }.pack('C*')
 
-    sha1_hmac = SHA1.new(o_key_pad + SHA1.digest(i_key_pad + message))  # HMAC(K, m)
+    sha1_hmac = MatasanoLib::Digest::SHA1.new(o_key_pad + MatasanoLib::Digest::SHA1.digest(i_key_pad + message))  # HMAC(K, m)
 
     @digest     = sha1_hmac.digest
     @hex_digest = sha1_hmac.hex_digest
@@ -41,7 +41,7 @@ class Oracle
   HMAC_KEY = 'YELLOW SUBMARINE'
 
   def initialize(file)
-    @hmac = MatasanoLib::Digest::SHA1_HMAC.hex_digest(HMAC_KEY, file)
+    @hmac = SHA1_HMAC.hex_digest(HMAC_KEY, file)
   end
 
   def insecure_compare(signature)

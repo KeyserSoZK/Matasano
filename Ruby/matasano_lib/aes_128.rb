@@ -7,11 +7,9 @@ require_relative 'aes_128_common'
 module MatasanoLib
   module AES_128
 
-    include AES_128_COMMON
+    include AES_128_COMMON  # Surfaces the BLOCKSIZE constant as AES_128::BLOCKSIZE.
 
     class << self
-      extend MatasanoLib::AES_128_COMMON
-
       def encrypt(plaintext, key, opts = {})
         raise 'No block cipher mode specified.' unless opts[:mode]
 
