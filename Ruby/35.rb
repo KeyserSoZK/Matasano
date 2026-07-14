@@ -177,7 +177,7 @@ def simulate_attack(malicious_g)
 
   ciphertexts = mallory.intercepted_messages.filter_map { |h| h[:original_message] if h[:type] == :ciphertext }
 
-  # Mallory derives session key based on malicious g (each case in set {1, p, p - 1}):
+  # Mallory reconstructs the predictable session key.
   known_session_key = predict_session_key(malicious_g, alice_dh, bob_dh)
 
   ciphertexts.each_with_index do |enc, i|
@@ -185,7 +185,8 @@ def simulate_attack(malicious_g)
   end
 end
 
-# Derives the session key for each malicious g case.
+# Derives the session key based on malicious g (each case in set {1, p, p - 1}):
+# These values of g force the session key into a known set (described at the top of this file).
 def predict_session_key(malicious_g, alice_dh, bob_dh)
   p = alice_dh.p
 
