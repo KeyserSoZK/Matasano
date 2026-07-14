@@ -162,8 +162,8 @@ def simulate_attack(malicious_g)
   bob_dh.set_session_key(alice_dh.public_key)
 
   # Alice and Bob exchange encrypted messages (with predictable session keys per malicious g).
-  alice_msg     = 'Hola Bobby boy, how are ya bruz?'
-  bob_msg       = "Yooo! Alice, my girl, you still ridin' those gnarly waves?"
+  alice_msg = 'Hola Bobby boy, how are ya bruz?'
+  bob_msg   = "Yooo! Alice, my girl, you still ridin' those gnarly waves?"
 
   alice_msg_enc = Oracle::encrypt_message(alice_msg, alice_dh.session_key)
   bob_msg_enc   = Oracle::encrypt_message(bob_msg, bob_dh.session_key)
@@ -178,18 +178,22 @@ def simulate_attack(malicious_g)
   ciphertexts = mallory.intercepted_messages.filter_map { |h| h[:original_message] if h[:type] == :ciphertext }
 
   # Mallory derives session key based on malicious g (each case in set {1, p, p - 1}):
-  known_session_key = case malicious_g
-                      when 1          then 1
-                      when alice_dh.p then 0
-                      when alice_dh.p - 1
-                        both_odd = alice_dh.public_key == alice_dh.p - 1 && bob_dh.public_key == bob_dh.p - 1
-                        both_odd ? alice_dh.p - 1 : 1
-                      else
-                        raise "simulate_attack(): known_session_key case not implemented."
-                      end
+  known_session_key = predict_session_key(malicious_g, alice_dh, bob_dh)
 
   ciphertexts.each_with_index do |enc, i|
     puts "Decrypted message #{i + 1}: #{mallory_decrypt(enc, known_session_key)}"
+  end
+end
+
+# Derives the session key for each malicious g case.
+def predict_session_key(malicious_g, alice_dh, bob_dh)
+  p = alice_dh.p
+
+  case malicious_g
+  when 1     then 1
+  when p     then 0
+  when p - 1 then (alice_dh.public_key == p - 1 && bob_dh.public_key == p - 1) ? p - 1 : 1
+  else raise "predict_session_key(): unsupported g = #{malicious_g}."
   end
 end
 
